@@ -6,6 +6,7 @@ import { srConfig } from '@config';
 import { KEY_CODES } from '@utils';
 import sr from '@utils/sr';
 import { usePrefersReducedMotion } from '@hooks';
+import { differenceInYears, differenceInMonths, parseISO } from 'date-fns';
 
 const StyledJobsSection = styled.section`
   max-width: 700px;
@@ -179,6 +180,7 @@ const Jobs = () => {
               location
               range
               url
+              date
             }
             html
           }
@@ -242,6 +244,28 @@ const Jobs = () => {
     }
   };
 
+  const calculateDuration = (startDateStr, endDateStr) => {
+    const startDate = parseISO(startDateStr);
+    const endDate = endDateStr.toLowerCase() === 'today' ? new Date() : parseISO(endDateStr);
+    const years = differenceInYears(endDate, startDate);
+    const months = differenceInMonths(endDate, startDate) % 12;
+    return `${years} year${years !== 1 ? 's' : ''} and ${months} month${months !== 1 ? 's' : ''}`;
+  };
+
+  const processRange = range => {
+    const queryMatch = range.match(/\{query:(\d{8})\}/);
+    if (queryMatch) {
+      const startDateStr = queryMatch[1];
+      const startDate = `${startDateStr.slice(0, 4)}-${startDateStr.slice(
+        4,
+        6,
+      )}-${startDateStr.slice(6, 8)}`;
+      const duration = calculateDuration(startDate, 'today');
+      return range.replace(queryMatch[0], duration);
+    }
+    return range;
+  };
+
   return (
     <StyledJobsSection id="jobs" ref={revealContainer}>
       <h2 className="numbered-heading">Where I’ve Worked</h2>
@@ -275,6 +299,8 @@ const Jobs = () => {
               const { frontmatter, html } = node;
               const { title, url, company, range } = frontmatter;
 
+              const processedRange = processRange(range);
+
               return (
                 <CSSTransition key={i} in={activeTabId === i} timeout={250} classNames="fade">
                   <StyledTabPanel
@@ -294,7 +320,7 @@ const Jobs = () => {
                       </span>
                     </h3>
 
-                    <p className="range">{range}</p>
+                    <p className="range">{processedRange}</p>
 
                     <div dangerouslySetInnerHTML={{ __html: html }} />
                   </StyledTabPanel>
