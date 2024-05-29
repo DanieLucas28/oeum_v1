@@ -105,3 +105,36 @@ exports.onCreateWebpackConfig = ({ stage, loaders, actions }) => {
     },
   });
 };
+
+const fetchGithubData = require('./src/utils/fetchGithubData');
+
+exports.sourceNodes = async ({ actions, createNodeId, createContentDigest }) => {
+  const { createNode, createTypes } = actions;
+
+  // Definindo tipos para o GraphQL
+  const typeDefs = `
+    type GithubRepo implements Node {
+      name: String
+      description: String
+      url: String
+      languages_url: String
+    }
+  `;
+  createTypes(typeDefs);
+
+  // Fetching GitHub data
+  const repos = await fetchGithubData();
+
+  // Criando nós
+  repos.forEach(repo => {
+    const node = {
+      ...repo,
+      id: createNodeId(`GithubRepo-${repo.name}`),
+      internal: {
+        type: 'GithubRepo',
+        contentDigest: createContentDigest(repo),
+      },
+    };
+    createNode(node);
+  });
+};

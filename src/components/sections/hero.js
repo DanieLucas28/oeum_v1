@@ -76,7 +76,7 @@ const Hero = () => {
     </>
   );
   const five = (
-    <a className="email-link" href="#featured" rel="noreferrer">
+    <a className="email-link" href="#projects" rel="noreferrer">
       Check out my portfolio!
     </a>
   );
