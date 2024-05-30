@@ -1,6 +1,9 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable arrow-body-style */
 // src/components/MacroView.js
+/* eslint-disable react/prop-types */
+/* eslint-disable arrow-body-style */
+// src/components/MacroView.js
 import React from 'react';
 import styled from 'styled-components';
 import TransitionButton from './TransitionButton';
@@ -38,10 +41,21 @@ const Button = styled.button`
 `;
 
 const MacroView = ({ macros, onMacroClick, onOverviewClick, onDetailsClick }) => {
+  // Ordenar a lista de macros, colocando "Other" por último
+  const sortedMacros = [...macros].sort((a, b) => {
+    if (a.name === 'Other') {
+      return 1;
+    }
+    if (b.name === 'Other') {
+      return -1;
+    }
+    return a.name.localeCompare(b.name);
+  });
+
   return (
     <>
       <ButtonContainer>
-        {macros
+        {sortedMacros
           .filter(macro => macro.name)
           .map((macro, index) => (
             <TransitionButton
