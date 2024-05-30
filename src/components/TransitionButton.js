@@ -2,13 +2,22 @@
 /* eslint-disable arrow-body-style */
 // src/components/TransitionButton.js
 // src/components/TransitionButton.js
+/* eslint-disable react/prop-types */
+/* eslint-disable arrow-body-style */
+/* eslint-disable react/prop-types */
+/* eslint-disable arrow-body-style */
 import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import {
   AcademicCapIcon,
   AdjustmentsHorizontalIcon,
   FolderIcon,
+  GlobeAltIcon,
+  CircleStackIcon,
 } from '@heroicons/react/24/outline';
+import InsertChartIcon from '@mui/icons-material/InsertChart';
+import RobotIcon from '@mui/icons-material/Android';
+import SpeechToTextIcon from '@mui/icons-material/RecordVoiceOver';
 import { useMicrosHeight } from '../context/MicrosHeightContext'; // Importando o contexto
 
 const Button = styled.button`
@@ -102,6 +111,18 @@ const getIcon = label => {
   switch (label) {
     case 'Data Science':
       return <AcademicCapIcon />;
+    case 'Data Engineering':
+      return <CircleStackIcon />;
+    case 'Machine Learning':
+      return <RobotIcon />;
+    case 'Data Analysis':
+    case 'Data Visualization':
+    case 'Business Intelligence':
+      return <InsertChartIcon />;
+    case 'Big Data':
+      return <GlobeAltIcon />;
+    case 'Natural Language Processing':
+      return <SpeechToTextIcon />;
     case 'Other':
       return <AdjustmentsHorizontalIcon />;
     default:
@@ -111,6 +132,7 @@ const getIcon = label => {
 
 const TransitionButton = ({ label, onClick, micros = [] }) => {
   const sortedMicros = micros.sort();
+  const setMicros = [...new Set(micros)].sort();
   const projectCount = sortedMicros.length;
   const projectLabel = projectCount === 1 ? '1 project' : `${projectCount} projects`;
 
@@ -132,7 +154,7 @@ const TransitionButton = ({ label, onClick, micros = [] }) => {
         <div className="icon">{getIcon(label)}</div>
         <div className="macro">{label}</div>
         <div className="micros" ref={microsRef}>
-          {sortedMicros.map((micro, index) => (
+          {setMicros.map((micro, index) => (
             <div key={index}>{micro}</div>
           ))}
         </div>
