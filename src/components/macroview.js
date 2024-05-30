@@ -1,53 +1,62 @@
 /* eslint-disable react/prop-types */
-/* eslint-disable jsx-a11y/click-events-have-key-events */
-/* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
+/* eslint-disable arrow-body-style */
+// src/components/MacroView.js
 import React from 'react';
 import styled from 'styled-components';
+import TransitionButton from './TransitionButton';
 
-const StyledMacroView = styled.ul`
-  ${({ theme }) => theme.mixins.resetList};
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  grid-gap: 15px;
-  margin-top: 50px;
+const ButtonContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px;
+`;
 
-  @media (max-width: 1080px) {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  }
+const FixedButtonContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 20px;
+`;
 
-  .macro-card {
-    ${({ theme }) => theme.mixins.boxShadow};
-    ${({ theme }) => theme.mixins.flexBetween};
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 2rem 1.75rem;
-    border-radius: var(--border-radius);
-    background-color: var(--light-navy);
-    cursor: pointer;
-    text-align: center;
-    color: var(--lightest-slate);
-    transition: var(--transition);
-    overflow: auto;
+const Button = styled.button`
+  ${({ theme }) => theme.mixins.bigButton}; /* Aplicando a mixin bigButton */
+  background-color: var(--light-navy);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition);
+  width: 120px;
+  text-align: center;
 
-    &:hover,
-    &:focus-within {
-      transform: translateY(-7px);
-    }
+  &:hover,
+  &:focus-visible {
+    background-color: var(--navy);
+    transform: translateY(-5px); /* Efeito de subir */
   }
 `;
 
-const MacroView = ({ projects, onMacroClick }) => {
-  const macros = [...new Set(projects.flatMap(project => project.tags.MACRO || []))];
-
+const MacroView = ({ macros, onMacroClick, onOverviewClick, onDetailsClick }) => {
   return (
-    <StyledMacroView>
-      {macros.map(macro => (
-        <li key={macro} className="macro-card" onClick={() => onMacroClick(macro)}>
-          <h3>{macro}</h3>
-          <p>Total Projects: {projects.filter(project => project.tags.MACRO === macro).length}</p>
-        </li>
-      ))}
-    </StyledMacroView>
+    <>
+      <ButtonContainer>
+        {macros
+          .filter(macro => macro.name)
+          .map((macro, index) => (
+            <TransitionButton
+              key={index}
+              label={macro.name}
+              onClick={() => onMacroClick(macro.name)}
+              micros={macro.micros} // Passando a lista de MICROS
+            />
+          ))}
+      </ButtonContainer>
+      <FixedButtonContainer>
+        <Button onClick={onOverviewClick}>Overview</Button>
+        <Button onClick={onDetailsClick}>Details</Button>
+      </FixedButtonContainer>
+    </>
   );
 };
 

@@ -1,50 +1,38 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { graphql, useStaticQuery, Link } from 'gatsby';
-import styled from 'styled-components';
-import { srConfig } from '@config';
-import sr from '@utils/sr';
-import { usePrefersReducedMotion } from '@hooks';
+/* eslint-disable no-undef */
+// src/pages/index.js
+import React, { useState } from 'react';
+import { graphql, useStaticQuery } from 'gatsby';
 import MacroView from '../macroview';
 import MicroView from '../microview';
-import ProjectDetails from '../projectdetails';
+import ProjectView from '../projectdetails';
+import Overview from '../Overview';
+import styled from 'styled-components';
+import { MicrosHeightProvider } from '../../context/MicrosHeightContext';
+import { extractTags } from '../../utils/extractTags';
 
-const StyledProjectsSection = styled.section`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+const StyledJProject = styled.section`
+  max-width: 1000px;
 
-  h2 {
-    font-size: clamp(24px, 5vw, var(--fz-heading));
-  }
-
-  .archive-link {
-    font-family: var(--font-mono);
-    font-size: var(--fz-sm);
-    &:after {
-      bottom: 0.1em;
+  .inner {
+    display: flex;
+    justify-content: center @media (max-width: 600px) {
+      display: block;
     }
-  }
 
-  .projects-grid {
-    ${({ theme }) => theme.mixins.resetList};
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    grid-gap: 15px;
-    position: relative;
-    margin-top: 50px;
-
-    @media (max-width: 1080px) {
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    // Prevent container from jumping
+    @media (min-width: 700px) {
+      min-height: 340px;
     }
-  }
-
-  .more-button {
-    ${({ theme }) => theme.mixins.button};
-    margin: 80px auto 0;
   }
 `;
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: left;
+  padding: 20px;
+`;
 
-const Projects = () => {
+const IndexPage = () => {
   const data = useStaticQuery(graphql`
     query {
       githubRepos: allGithubRepo {
@@ -60,29 +48,38 @@ const Projects = () => {
   const [view, setView] = useState('macro');
   const [selectedMacro, setSelectedMacro] = useState(null);
   const [selectedMicro, setSelectedMicro] = useState(null);
-  const projects = data.githubRepos.nodes.map(repo => ({
-    ...repo,
-    tags: {
-      MACRO: repo.description ? (repo.description.match(/MACRO:([^;]+)/) || [])[1] : null,
-      MICRO: repo.description ? (repo.description.match(/MICRO:([^;]+)/) || [])[1] : null,
-      LIBS: repo.description ? (repo.description.match(/LIBS:([^;]+)/) || [])[1] : null,
-    },
+
+  const projects = data.githubRepos.nodes
+    .map(repo => ({
+      ...repo,
+      tags: extractTags(repo.description),
+    }))
+    .filter(project => project.tags.MACRO); // Filtra projetos sem a tag MACRO
+
+  const macros = [...new Set(projects.map(project => project.tags.MACRO))].map(macro => ({
+    name: macro,
+    micros: projects
+      .filter(project => project.tags.MACRO === macro)
+      .map(project => project.tags.MICRO)
+      .sort(), // Obtendo e ordenando a lista de MICROS
   }));
 
-  const revealTitle = useRef(null);
-  const revealArchiveLink = useRef(null);
-  const revealProjects = useRef([]);
-  const prefersReducedMotion = usePrefersReducedMotion();
+  const micros = selectedMacro
+    ? [
+      ...new Set(
+        projects
+          .filter(project => project.tags.MACRO === selectedMacro)
+          .map(project => project.tags.MICRO),
+      ),
+    ].map(micro => ({
+      name: micro,
+      count: projects.filter(project => project.tags.MICRO === micro).length,
+    }))
+    : [];
 
-  useEffect(() => {
-    if (prefersReducedMotion) {
-      return;
-    }
-
-    sr.reveal(revealTitle.current, srConfig());
-    sr.reveal(revealArchiveLink.current, srConfig());
-    revealProjects.current.forEach((ref, i) => sr.reveal(ref, srConfig(i * 100)));
-  }, []);
+  const filteredProjects = selectedMicro
+    ? projects.filter(project => project.tags.MICRO === selectedMicro)
+    : [];
 
   const handleMacroClick = macro => {
     setSelectedMacro(macro);
@@ -90,46 +87,46 @@ const Projects = () => {
   };
 
   const handleMicroClick = micro => {
-    setSelectedMicro(micro);
-    setView('details');
+    if (micro === 'dashboard') {
+      setView('micro-dashboard');
+    } else if (micro === 'back') {
+      setView('macro');
+    } else {
+      setSelectedMicro(micro);
+      setView('project');
+    }
   };
 
-  const handleBackToMacro = () => {
-    setSelectedMacro(null);
+  const handleOverviewClick = () => {
     setView('macro');
   };
 
-  const handleBackToMicro = () => {
-    setSelectedMicro(null);
-    setView('micro');
+  const handleDetailsClick = () => {
+    setView('overview');
   };
 
   return (
-    <StyledProjectsSection id="projects">
-      <h2 ref={revealTitle}>Projects</h2>
-      <Link className="inline-link archive-link" to="/archive" ref={revealArchiveLink}>
-        view the archive
-      </Link>
-
-      {view === 'macro' && <MacroView projects={projects} onMacroClick={handleMacroClick} />}
-      {view === 'micro' && (
-        <MicroView
-          projects={projects}
-          selectedMacro={selectedMacro}
-          onMicroClick={handleMicroClick}
-          onBack={handleBackToMacro}
-        />
-      )}
-      {view === 'details' && (
-        <ProjectDetails
-          projects={projects}
-          selectedMacro={selectedMacro}
-          selectedMicro={selectedMicro}
-          onBack={handleBackToMicro}
-        />
-      )}
-    </StyledProjectsSection>
+    <>
+      <StyledJProject>
+        <h2 className="numbered-heading">Projects</h2>
+        <MicrosHeightProvider>
+          <Container>
+            {view === 'macro' && (
+              <MacroView
+                macros={macros}
+                onMacroClick={handleMacroClick}
+                onOverviewClick={handleOverviewClick}
+                onDetailsClick={handleDetailsClick}
+              />
+            )}
+            {view === 'micro' && <MicroView micros={micros} onMicroClick={handleMicroClick} />}
+            {view === 'project' && <ProjectView projects={filteredProjects} />}
+            {view === 'overview' && <Overview onBack={() => setView('macro')} />}
+          </Container>
+        </MicrosHeightProvider>
+      </StyledJProject>
+    </>
   );
 };
 
-export default Projects;
+export default IndexPage;
