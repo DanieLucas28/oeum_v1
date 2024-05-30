@@ -12,10 +12,12 @@ import { extractTags } from '../../utils/extractTags';
 
 const StyledJProject = styled.section`
   max-width: 1000px;
-
+  justify-content: center;
   .inner {
-    display: flex;
-    justify-content: center @media (max-width: 600px) {
+    display: grid;
+    justify-content: center;
+
+    @media (max-width: 600px) {
       display: block;
     }
 
