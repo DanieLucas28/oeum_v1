@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable no-undef */
 // src/pages/index.js
 import React, { useState } from 'react';
@@ -12,10 +13,9 @@ import { extractTags } from '../../utils/extractTags';
 
 const StyledJProject = styled.section`
   max-width: 1000px;
-  justify-content: center;
+
   .inner {
-    display: grid;
-    justify-content: center;
+    display: flex;
 
     @media (max-width: 600px) {
       display: block;
@@ -27,6 +27,7 @@ const StyledJProject = styled.section`
     }
   }
 `;
+
 const Container = styled.div`
   display: flex;
   flex-direction: column;
@@ -79,24 +80,13 @@ const IndexPage = () => {
     }))
     : [];
 
-  const filteredProjects = selectedMicro
-    ? projects.filter(project => project.tags.MICRO === selectedMicro)
+  const filteredProjects = selectedMacro
+    ? projects.filter(project => project.tags.MACRO === selectedMacro)
     : [];
 
   const handleMacroClick = macro => {
     setSelectedMacro(macro);
     setView('micro');
-  };
-
-  const handleMicroClick = micro => {
-    if (micro === 'dashboard') {
-      setView('micro-dashboard');
-    } else if (micro === 'back') {
-      setView('macro');
-    } else {
-      setSelectedMicro(micro);
-      setView('project');
-    }
   };
 
   const handleOverviewClick = () => {
@@ -121,7 +111,13 @@ const IndexPage = () => {
                 onDetailsClick={handleDetailsClick}
               />
             )}
-            {view === 'micro' && <MicroView micros={micros} onMicroClick={handleMicroClick} />}
+            {view === 'micro' && (
+              <MicroView
+                projects={filteredProjects}
+                onMicroClick={handleOverviewClick}
+                onDetailsClick={handleDetailsClick}
+              />
+            )}
             {view === 'project' && <ProjectView projects={filteredProjects} />}
             {view === 'overview' && <Overview onBack={() => setView('macro')} />}
           </Container>
